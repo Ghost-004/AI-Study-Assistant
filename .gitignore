@@ -27,3 +27,7 @@ pnpm-debug.log*
 
 # OS
 .DS_Store
+
+#chroma
+chromadb/
+ai-service/chromadb/
