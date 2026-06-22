@@ -1,4 +1,4 @@
-from fastapi import FastAPI
+from fastapi import FastAPI, UploadFile, File
 import chromadb
 
 app = FastAPI()
@@ -12,6 +12,16 @@ collection = client.get_or_create_collection(
 @app.get("/")
 def root():
     return {"message" : "AI service is running"}
+
+@app.post("/upload")
+async def upload(file: UploadFile = File("file")):
+    contents = await file.read()
+    return {
+        "filename": file.filename,
+        "content_type": file.content_type,
+        "size": len(contents)
+    }
+
 
 @app.post("/ask")
 async def ask(data: dict):

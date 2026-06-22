@@ -31,3 +31,7 @@ pnpm-debug.log*
 #chroma
 chromadb/
 ai-service/chromadb/
+
+
+# Uploads
+uploads/
