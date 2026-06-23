@@ -13,12 +13,23 @@ export default function App() {
 
 	async function handleAsk(question){
 		const data = await askQuestion(question);
-		setResponse(data.context);
+		console.log(data);
+
+		setResponse(data.documents[0].join("\n\n"));
 	}
+
 	async function handlePdfUpload() {
-        if(!pdfFile) return;
-        const data = await sendPdf(pdfFile);
-        console.log(data);
+        if(!pdfFile){
+			alert("Please select a PDF");
+			return;
+		}
+
+		const data = await sendPdf(pdfFile);
+		alert(
+			`Uploaded successfully.
+			${data.chunks} chunks created`
+		);
+
     }
 
 	useEffect(() => {

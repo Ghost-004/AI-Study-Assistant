@@ -1,39 +1,43 @@
-from fastapi import FastAPI, UploadFile, File
-import chromadb
+from fastapi import FastAPI, UploadFile, File, Form
+from pydantic import BaseModel
+
+from services import chunk_service, pdf_service, embedding_service, chroma_service
+
+class QuestionRequest(BaseModel):
+    question: str
 
 app = FastAPI()
 
-client = chromadb.PersistentClient("./chromadb")
 
-collection = client.get_or_create_collection(
-    name="study_material"
-)
 
 @app.get("/")
 def root():
     return {"message" : "AI service is running"}
 
 @app.post("/upload")
-async def upload(file: UploadFile = File("file")):
+async def upload(file: UploadFile = File(...), documentId: int = Form(...)):
     contents = await file.read()
+    text = pdf_service.extract_text(contents)
+    chunks = chunk_service.chunk_text(text)
+    embeddings = embedding_service.generate_embeddings(chunks)
+
+    chroma_service.store_chunks(
+        chunks,
+        embeddings,
+        file.filename,
+        documentId
+    )
+
     return {
-        "filename": file.filename,
-        "content_type": file.content_type,
-        "size": len(contents)
+        "success" : True,
+        "chunks" : len(chunks)
     }
 
 
 @app.post("/ask")
-async def ask(data: dict):
+async def ask(req: QuestionRequest):
+    query_embedding = embedding_service.generate_embedding(req.question)
 
-    question = data["question"]
+    results = chroma_service.search_chunks(query_embedding)
 
-    results = collection.query(
-        query_texts=[question],
-        n_results=2
-    )
-
-    return {
-        "question" : question,
-        "context" : results["documents"][0]
-    }
+    return results

@@ -51,7 +51,12 @@ export function UploadBox( { pdfFile, setPdfFile, handlePdfUpload, accept = ".pd
                     accept = {accept}
                     onChange = {updateFile}
                 />
-                <button onClick={handlePdfUpload}>
+                <button 
+                onClick={(e) => {
+                    e.stopPropagation();
+                    handlePdfUpload();
+                }}
+                >
                     Upload
                 </button>
             </div>

@@ -103,8 +103,8 @@ app.post("/ask", async (req, res) => {
             }
         );
 
-        const data = await response.json();
-        res.json(data);
+        const question = await response.json();
+        res.json(question);
     } catch(err) {
         console.error(err);
         res.status(500).json({
