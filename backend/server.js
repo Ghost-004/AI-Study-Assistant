@@ -103,7 +103,10 @@ app.post("/ask", async (req, res) => {
             }
         );
 
+        console.log(response.status);
+
         const question = await response.json();
+        console.log(question);
         res.json(question);
     } catch(err) {
         console.error(err);

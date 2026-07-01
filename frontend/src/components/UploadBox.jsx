@@ -36,14 +36,19 @@ export function UploadBox( { pdfFile, setPdfFile, handlePdfUpload, accept = ".pd
     return (
         <>
             <div
+                className="bg-white rounded-xl shadow p-6 border-2 border-dashed border-gray-300 hover:border-blue-500 cursor-pointer transition"
                 onDragOver={handleDragOver}
                 onDrop={handleFileDrop}
                 onClick={handleFileUpload}
             >
-                Drop PDF here
-
-                or click to upload
-                {pdfFile && pdfFile.name}
+                <h2 className="text-xl font-semibold mb-4">
+                    Upload Study Material
+                </h2>
+                {pdfFile && (
+                    <p className="mt-4 text-green-600 font-medium">
+                        Selected: {pdfFile.name}
+                    </p>
+                )}
                 <input 
                     ref = {fileInputRef}
                     type = "file"
@@ -52,10 +57,11 @@ export function UploadBox( { pdfFile, setPdfFile, handlePdfUpload, accept = ".pd
                     onChange = {updateFile}
                 />
                 <button 
-                onClick={(e) => {
-                    e.stopPropagation();
-                    handlePdfUpload();
-                }}
+                    className="mt-4 px-5 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+                    onClick={(e) => {
+                        e.stopPropagation();
+                        handlePdfUpload();
+                    }}
                 >
                     Upload
                 </button>

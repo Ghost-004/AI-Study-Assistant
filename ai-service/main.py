@@ -1,7 +1,7 @@
 from fastapi import FastAPI, UploadFile, File, Form
 from pydantic import BaseModel
 
-from services import chunk_service, pdf_service, embedding_service, chroma_service
+from services import chunk_service, pdf_service, embedding_service, chroma_service, llm_service
 
 class QuestionRequest(BaseModel):
     question: str
@@ -40,4 +40,14 @@ async def ask(req: QuestionRequest):
 
     results = chroma_service.search_chunks(query_embedding)
 
-    return results
+    context = "\n\n".join(results["documents"][0])
+
+    answer = llm_service.generate_answer(
+        req.question,
+        context
+    )
+
+    return {
+        "answer" : answer,
+        "sources" : results["metadatas"][0]
+    }

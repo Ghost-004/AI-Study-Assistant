@@ -1,21 +1,30 @@
 import { useEffect, useState } from "react";
-import SearchBox from "./components/SearchBox";
-import { askQuestion } from "./services/api";
+import { askQuestion, sendPdf } from "./services/api";
+import { SearchBox } from "./components/SearchBox";
 import { ResponseBox } from "./components/ResponseBox";
-import { sendPdf } from "./services/api";
 import { UploadBox } from "./components/UploadBox";
+import { Header } from "./components/Header"
 
 export default function App() {
-	const [message, setMessage] = useState("");
 	const [question, setQuestion] = useState("");
-	const [response, setResponse] = useState("");
+
+	const [answer, setAnswer] = useState("");
+	const [sources, setSources] = useState([]);
+	const [loading, setLoading] = useState(false);
+
 	const[pdfFile, setPdfFile] = useState(null);
 
 	async function handleAsk(question){
-		const data = await askQuestion(question);
-		console.log(data);
+		setLoading(true);
+		try {
+			const data = await askQuestion(question);
 
-		setResponse(data.documents[0].join("\n\n"));
+			setAnswer(data.answer);
+			setSources(data.sources);
+		}
+		finally {
+			setLoading(false);
+		}
 	}
 
 	async function handlePdfUpload() {
@@ -37,12 +46,22 @@ export default function App() {
 		.then((res) => res.json())
 		.then((data) => setMessage(data.message))
 	}, []);
-
 	return (
 		<>
-			<SearchBox question = {question} setQuestion = {setQuestion} handleAsk = {handleAsk}/>
-			<ResponseBox response = {response}/>
-			<UploadBox pdfFile = {pdfFile} setPdfFile = {setPdfFile} handlePdfUpload = {handlePdfUpload}/>
+			<div className="min-h-screen bg-gray-100">
+				<Header />
+				<div className="max-w-5xl mx-auto p-8 ">
+					<div className="mb-8">
+						<SearchBox question = {question} setQuestion = {setQuestion} handleAsk = {handleAsk}/>
+					</div>
+					<div className="mb-8">
+						<UploadBox pdfFile = {pdfFile} setPdfFile = {setPdfFile} handlePdfUpload = {handlePdfUpload}/>
+					</div>
+					<div className="mb-8">
+						<ResponseBox answer={answer} sources={sources} loading={loading}/>
+					</div>
+				</div>
+			</div>
 		</>
 	);
 }
