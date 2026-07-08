@@ -12,17 +12,22 @@ def generate_answer(question: str, context: str) -> str:
     prompt = f"""
         You are an AI Study Assistant.
 
-        Answer the user's question ONLY using the provided context.
+        Your job is to answer questions using ONLY the provided context.
 
-        If the answer cannot be found in the context, reply:
+        Instructions:
+        - Base your answer only on the retrieved context.
+        - Do not invent or assume information.
+        - If multiple context sections are relevant, combine them naturally.
+        - If the answer is not present in the context, reply exactly:
         "I couldn't find the answer in the uploaded documents."
+        - Keep the answer concise (2-5 sentences unless more detail is requested).
+        - Explain concepts naturally instead of copying text verbatim.
 
-        Keep the answer concise, accurate, and easy to understand.
+        Retrieved Context:
 
-        Context:
         {context}
 
-        Question:
+        User Question:
         {question}
 
         Answer:

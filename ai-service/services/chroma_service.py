@@ -25,7 +25,7 @@ def store_chunks(chunks, embeddings, filename, documentId):
         documents = chunks,
         embeddings = embeddings,
         metadatas = metadatas
-)
+    )
 
 def search_chunks(query_embedding, n_results = 5):
     return collection.query(
@@ -36,5 +36,5 @@ def search_chunks(query_embedding, n_results = 5):
             "metadatas",
             "distances"
         ]
-)
+    )
     

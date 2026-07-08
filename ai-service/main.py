@@ -18,6 +18,7 @@ def root():
 async def upload(file: UploadFile = File(...), documentId: int = Form(...)):
     contents = await file.read()
     text = pdf_service.extract_text(contents)
+    text = pdf_service.clean_text(text)
     chunks = chunk_service.chunk_text(text)
     embeddings = embedding_service.generate_embeddings(chunks)
 
@@ -39,8 +40,28 @@ async def ask(req: QuestionRequest):
     query_embedding = embedding_service.generate_embedding(req.question)
 
     results = chroma_service.search_chunks(query_embedding)
+    context = ""
 
-    context = "\n\n".join(results["documents"][0])
+    for i, chunk in enumerate(results["documents"][0], start=1):
+        context += f"Context {i}:\n{chunk}\n\n"
+
+    DEBUG = False
+    if DEBUG:
+        print("=" * 80)
+        for meta, distance, doc in zip(
+            results["metadatas"][0],
+            results["distances"][0],
+            results["documents"][0]
+        ):
+            print(f"""
+                Document: {meta['document_id']}
+                Chunk: {meta['chunk_id']}
+                Distance: {distance:.4f}
+
+                {doc[:250]}
+                ------------------------------------------------------------
+                """
+            )
 
     answer = llm_service.generate_answer(
         req.question,
