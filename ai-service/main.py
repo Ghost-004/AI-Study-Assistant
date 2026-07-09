@@ -1,8 +1,13 @@
 from fastapi import FastAPI, UploadFile, File, Form
 from pydantic import BaseModel
 
-from services import chunk_service, pdf_service, embedding_service, chroma_service, llm_service
-
+from services import (
+    chunk_service,
+    document_service,
+    embedding_service,
+    chroma_service,
+    llm_service
+)
 class QuestionRequest(BaseModel):
     question: str
 
@@ -17,8 +22,8 @@ def root():
 @app.post("/upload")
 async def upload(file: UploadFile = File(...), documentId: int = Form(...)):
     contents = await file.read()
-    text = pdf_service.extract_text(contents)
-    text = pdf_service.clean_text(text)
+    text = document_service.extract_text(contents, file.filename)
+    text = document_service.clean_text(text)
     chunks = chunk_service.chunk_text(text)
     embeddings = embedding_service.generate_embeddings(chunks)
 

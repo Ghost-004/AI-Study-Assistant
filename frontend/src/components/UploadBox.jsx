@@ -1,6 +1,6 @@
 import { useRef, useState } from "react";
 
-export function UploadBox( { pdfFile, setPdfFile, handlePdfUpload, accept = ".pdf" } ){
+export function UploadBox( { pdfFile, setPdfFile, handlePdfUpload, accept = ".pdf,.docx,.pptx,.txt" } ){
 	
     const fileInputRef = useRef(null);
 
@@ -10,8 +10,15 @@ export function UploadBox( { pdfFile, setPdfFile, handlePdfUpload, accept = ".pd
 
     const updateFile = (event) => {
         const file = event.target.files[0];
-        if(file.type !== "application/pdf"){
-            alert("Please upload a PDF");
+        const allowedTypes = [
+            "application/pdf",
+            "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+            "application/vnd.openxmlformats-officedocument.presentationml.presentation",
+            "text/plain"
+        ];
+
+        if(!allowedTypes.includes(file.type)){
+            alert("Please upload a supported document.");
             return;
         }
         setPdfFile(file);
