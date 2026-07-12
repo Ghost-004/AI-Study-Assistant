@@ -25,6 +25,14 @@ export function Header(){
                     <button className="text-gray-600 hover:text-blue-600">
                         Analytics
                     </button>
+                    <button
+                        onClick={()=>{
+                            localStorage.removeItem("token");
+                            window.location.reload();
+                        }}
+                    >
+                        Logout
+                    </button>
                 </nav>
 
             </div>

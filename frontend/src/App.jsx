@@ -1,18 +1,31 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { askQuestion, sendPdf } from "./services/api";
 import { SearchBox } from "./components/SearchBox";
 import { ResponseBox } from "./components/ResponseBox";
 import { UploadBox } from "./components/UploadBox";
 import { Header } from "./components/Header"
+import { Login } from "./components/Login";
 
 export default function App() {
 	const [question, setQuestion] = useState("");
-
 	const [answer, setAnswer] = useState("");
 	const [sources, setSources] = useState([]);
 	const [loading, setLoading] = useState(false);
-
 	const[pdfFile, setPdfFile] = useState(null);
+	const [isLoggedIn, setIsLoggedIn] = useState(
+		!!localStorage.getItem("token")
+	);
+
+	/**
+	 	{
+			"email":"test@test.com",
+			"password":"password123"
+		}
+	 */
+
+	if(!isLoggedIn){
+		return <Login onLogin={() => setIsLoggedIn(true)} />;
+	}
 
 	async function handleAsk(question){
 		setLoading(true);
@@ -41,11 +54,6 @@ export default function App() {
 
     }
 
-	useEffect(() => {
-		fetch("http://localhost:5000/ai")
-		.then((res) => res.json())
-		.then((data) => setMessage(data.message))
-	}, []);
 	return (
 		<>
 			<div className="min-h-screen bg-gray-100">
