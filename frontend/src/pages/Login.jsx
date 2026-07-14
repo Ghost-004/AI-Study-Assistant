@@ -1,7 +1,10 @@
 import { useState } from "react";
 import { login } from "../services/api";
+import { useNavigate } from "react-router-dom";
 
-export function Login ({ onLogin }){
+export function Login (){
+    const navigate = useNavigate();
+
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
     const [error, setError] = useState("");
@@ -17,7 +20,7 @@ export function Login ({ onLogin }){
                 data.token
             );
 
-            onLogin();
+            navigate("/");
         }
         else{
             setError(data.error);
