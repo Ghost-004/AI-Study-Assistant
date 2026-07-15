@@ -1,7 +1,8 @@
 import { Routes, Route } from "react-router-dom";
 import { Header } from "./components/Header";
 import { Login } from "./pages/Login";
-import HomePage from "./pages/HomePage";
+import { Register } from "./pages/Register";
+import { HomePage } from "./pages/HomePage";
 import { ProtectedRoute } from "./components/ProtectedRoute";
 
 export default function App(){
@@ -19,6 +20,10 @@ export default function App(){
 				<Route 
 					path="/login"
 					element={<Login/>}
+				/>
+				<Route
+					path="/register"
+					element={<Register />}
 				/>
 			</Routes>
 		</div>

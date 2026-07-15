@@ -222,7 +222,7 @@ app.post("/register", async (req, res) => {
         );
 
         res.status(201).json({
-            mesasage: "User registered successfully"
+            message: "User registered successfully"
         })
     } 
     catch (error) {

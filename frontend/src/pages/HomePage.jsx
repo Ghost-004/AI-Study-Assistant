@@ -5,7 +5,7 @@ import { ResponseBox } from "../components/ResponseBox";
 import { UploadBox } from "../components/UploadBox";
 import { Header } from "../components/Header";
 
-export default function HomePage() {
+export function HomePage() {
 	const [question, setQuestion] = useState("");
 	const [answer, setAnswer] = useState("");
 	const [sources, setSources] = useState([]);
@@ -16,6 +16,10 @@ export default function HomePage() {
 	 	{
 			"email":"test@test.com",
 			"password":"password123"
+		}
+		{
+			"email":"abc123@gmail.com",
+			"password":"quickfox"
 		}
 	 */
 
