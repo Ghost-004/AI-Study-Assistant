@@ -156,6 +156,27 @@ app.post(
 //endpoint for asking questions
 app.post("/ask", async (req, res) => {
     try {
+        const { sessionId, question } = req.body;
+        await pool.query (
+            `
+            INSERT INTO messages (chat_session_id, role, content)\
+            VALUES ($1, $2, $3)
+            `,
+            [sessionId, 'user', question]
+        );
+        
+        const messageResult = await pool.query(
+            `
+            SELECT role, content
+            FROM messages
+            WHERE chat_session_id = $1
+            ORDER BY created_at ASC;
+            `,
+            [sessionId]
+        );
+
+        const messages = messageResult.rows;
+
         const response = await fetch(
             "http://localhost:8000/ask",
             {
@@ -165,15 +186,27 @@ app.post("/ask", async (req, res) => {
                     "Content-Type": "application/json"
                 },
 
-                body: JSON.stringify(req.body)
+                body: JSON.stringify({
+                    question,
+                    messages
+                })
             }
         );
 
-        console.log(response.status);
+        if (!response.ok) {
+            throw new Error("AI service failed");
+        }
+        const aiResponse = await response.json();
 
-        const question = await response.json();
-        console.log(question);
-        res.json(question);
+        await pool.query(
+            `
+            INSERT INTO messages (chat_session_id, role, content)
+            VALUES ($1, $2, $3);
+            `,
+            [sessionId, "assistant", aiResponse.answer]
+        );
+        
+        res.json(aiResponse);
     } catch(err) {
         console.error(err);
         res.status(500).json({
@@ -183,10 +216,90 @@ app.post("/ask", async (req, res) => {
 
 });
 
+app.get("/chat-sessions", authenticateToken, async (req, res) => {
+    try{
+        const userId = req.user.id;
+        const result = await pool.query(
+            `
+                SELECT id, title, created_at
+                FROM chat_sessions
+                WHERE user_id = $1
+                ORDER BY created_at DESC
+            `,
+            [userId]
+        );
+
+        res.json(result.rows);
+    } 
+    catch(err){
+        console.error(err);
+
+        res.status(500).json({
+            error: "Failed to fetch chat session"
+        })
+    }
+})
+
+app.post("/chat-sessions", authenticateToken, async (req, res) => {
+    try {
+        const userId = req.user.id;
+
+        const result = await pool.query(
+            `
+                INSERT INTO chat_sessions (user_id, title)
+                VALUES ($1, $2)
+                RETURNING *;
+            `,
+            [userId, "New Chat"]
+        );
+
+        res.status(201).json(result.rows[0]);
+
+    } catch(err){
+        console.error(err);
+
+        res.status(500).json({
+            error: "Failed to create chat session"
+        })
+    }
+});
+
+app.get("/chat-sessions/:id/messages", authenticateToken, async (req, res) => {
+    try{
+        const userId = req.user.id;
+        const sessionId = req.params.id;
+
+        const result = await pool.query(
+            `
+                SELECT
+                    m.role,
+                    m.content,
+                    m.created_at
+                FROM messages m
+                JOIN chat_sessions cs
+                    ON m.chat_session_id = cs.id
+                WHERE
+                    cs.id = $1
+                    AND cs.user_id = $2
+                ORDER BY m.created_at ASC;
+            `,
+            [sessionId, userId]
+        );
+
+        res.json(result.rows);
+    }
+    catch(err){
+        console.error(err);
+
+        res.status(500).json({
+            error: "Failed to fetch messages"
+        });
+    }
+});
+
 //user registration
 app.post("/register", async (req, res) => {
     try {
-        console.log(req.body);
         const { email, password } = req.body;
         
         if(!email || !password){
@@ -237,8 +350,6 @@ app.post("/register", async (req, res) => {
 //user login
 app.post("/login", async (req, res) => {
     try {
-        console.log("Headers:", req.headers);
-        console.log("Body:", req.body);
         const { email, password } = req.body;
         
         if(!email || !password){

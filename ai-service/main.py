@@ -8,12 +8,16 @@ from services import (
     chroma_service,
     llm_service
 )
+
+class Message(BaseModel):
+    role: str
+    content: str
+
 class QuestionRequest(BaseModel):
     question: str
+    messages: list[Message]
 
 app = FastAPI()
-
-
 
 @app.get("/")
 def root():
@@ -42,6 +46,8 @@ async def upload(file: UploadFile = File(...), documentId: int = Form(...)):
 
 @app.post("/ask")
 async def ask(req: QuestionRequest):
+    question = req.question
+    messages = req.messages
     query_embedding = embedding_service.generate_embedding(req.question)
 
     results = chroma_service.search_chunks(query_embedding)
@@ -50,27 +56,10 @@ async def ask(req: QuestionRequest):
     for i, chunk in enumerate(results["documents"][0], start=1):
         context += f"Context {i}:\n{chunk}\n\n"
 
-    DEBUG = False
-    if DEBUG:
-        print("=" * 80)
-        for meta, distance, doc in zip(
-            results["metadatas"][0],
-            results["distances"][0],
-            results["documents"][0]
-        ):
-            print(f"""
-                Document: {meta['document_id']}
-                Chunk: {meta['chunk_id']}
-                Distance: {distance:.4f}
-
-                {doc[:250]}
-                ------------------------------------------------------------
-                """
-            )
-
     answer = llm_service.generate_answer(
-        req.question,
-        context
+        question=question,
+        context=context,
+        messages=messages
     )
 
     return {

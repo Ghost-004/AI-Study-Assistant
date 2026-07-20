@@ -8,26 +8,30 @@ client = genai.Client(
     api_key = os.getenv("GEMINI_API_KEY")
 )
 
-def generate_answer(question: str, context: str) -> str:
+def generate_answer(question: str, context: str, messages: str) -> str:
+    conversation = "\n".join(
+        f"{msg.role.capitalize()}: {msg.content}"
+        for msg in messages[:-1]
+    )
+    
     prompt = f"""
-        You are an AI Study Assistant.
+        You are an AI study assistant.
 
-        Your job is to answer questions using ONLY the provided context.
+        Use the retrieved document context whenever it answers the user's question.
 
-        Instructions:
-        - Base your answer only on the retrieved context.
-        - Do not invent or assume information.
-        - If multiple context sections are relevant, combine them naturally.
-        - If the answer is not present in the context, reply exactly:
+        The conversation history is provided so you can understand follow-up questions.
+
+        If the answer cannot be found in the provided document context, say:
+
         "I couldn't find the answer in the uploaded documents."
-        - Keep the answer concise (2-5 sentences unless more detail is requested).
-        - Explain concepts naturally instead of copying text verbatim.
+
+        Conversation History:
+        {conversation}
 
         Retrieved Context:
-
         {context}
 
-        User Question:
+        Current Question:
         {question}
 
         Answer:
