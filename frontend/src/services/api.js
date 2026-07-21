@@ -57,24 +57,53 @@ export async function register(email, password) {
     return response.json();
 }
 
-export async function sendPdf(pdfFile){
+export async function sendPdf(pdfFile) {
     const formData = new FormData();
     formData.append("file", pdfFile);
 
     const token = localStorage.getItem("token");
 
-    const response = await fetch(
-        "http://localhost:5000/upload",
-        {
-            method: "POST",
+    const response = await fetch("http://localhost:5000/upload", {
+        method: "POST",
+        headers: {
+            Authorization: `Bearer ${token}`
+        },
+        body: formData
+    });
 
-            headers: {
-                Authorization: `Bearer ${token}`
-            },
+    const data = await response.json();
 
-            body: formData
+    if (!response.ok) {
+        throw new Error(data.error || "Upload failed.");
+    }
+
+    return data;
+}
+
+export async function getChatSessions() {
+    const token = localStorage.getItem("token");
+
+    const response = await fetch("http://localhost:5000/chat-sessions", {
+        headers : {
+            "Authorization" : `Bearer ${token}`
         }
-    );
+    });
 
-    return response.json();
+    return await response.json();
+}
+
+export async function getMessages(sessionId) {
+    const token = localStorage.getItem("token");
+    const response = await fetch(`http://localhost:5000/chat-sessions/${sessionId}/messages`, {
+        headers : {
+            "Authorization" : `Bearer ${token}`
+        }
+    });
+
+    if(!response.ok) {
+        throw new Error("Failed to fetch messages");
+        
+    }
+    
+    return await response.json();
 }

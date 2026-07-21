@@ -81,6 +81,10 @@ app.post(
     authenticateToken,
     upload.single("file"),
     async (req,res)=>{
+
+    console.log("Upload route hit");
+    console.log(req.file);
+    console.log(req.body);
     try{
         if (!req.file) {
             return res.status(400).json({

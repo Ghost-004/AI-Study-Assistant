@@ -1,9 +1,11 @@
-import { useState } from "react";
-import { askQuestion, sendPdf } from "../services/api";
+import { useState, useEffect } from "react";
+import { askQuestion, getChatSessions, sendPdf, getMessages } from "../services/api";
 import { SearchBox } from "../components/SearchBox";
 import { ResponseBox } from "../components/ResponseBox";
 import { UploadBox } from "../components/UploadBox";
 import { Header } from "../components/Header";
+import { Sidebar } from "../components/Sidebar";
+import { ChatWindow } from "../components/ChatWindow";
 
 export function HomePage() {
 	const [question, setQuestion] = useState("");
@@ -12,6 +14,10 @@ export function HomePage() {
 	const [loading, setLoading] = useState(false);
 	const[pdfFile, setPdfFile] = useState(null);
 
+	const [sessions, setSessions] = useState([]);
+	const [selectedSession, setSelectedSession] = useState(null);
+	const [messages, setMessages] = useState([]);
+	const [uploadStatus, setUploadStatus] = useState("");
 	/**
 	 	{
 			"email":"test@test.com",
@@ -22,6 +28,46 @@ export function HomePage() {
 			"password":"quickfox"
 		}
 	 */
+
+	useEffect(() => {
+		fetchSession();
+	}, []);
+
+	useEffect(() => {
+		if (!selectedSession) return;
+
+		loadMessages(selectedSession);
+	}, [selectedSession]);
+
+	useEffect(() => {
+		if (!uploadStatus) return;
+
+		const timer = setTimeout(() => {
+			setUploadStatus(null);
+		}, 3000); // Hide after 3 seconds
+
+		return () => clearTimeout(timer);
+	}, [uploadStatus]);
+
+	async function fetchSession() {
+		try{
+			const data = await getChatSessions();
+			setSessions(data);
+		}
+		catch(err){
+			console.error(err);
+		}
+	}
+
+	async function loadMessages(sessionId) {
+		try {
+			const data = await getMessages(sessionId);
+			setMessages(data);
+		}
+		catch (err) {
+			console.error(err);
+		}
+	}
 
 	async function handleAsk(question){
 		setLoading(true);
@@ -36,35 +82,51 @@ export function HomePage() {
 		}
 	}
 
-	async function handlePdfUpload() {
-        if(!pdfFile){
-			alert("Please select a PDF");
-			return;
+	async function handlePdfUpload(file) {
+		try {
+			await sendPdf(file);
+
+			setUploadStatus({
+				type: "success",
+				message: `${file.name} uploaded successfully`
+			});
+		} catch (err) {
+			setUploadStatus({
+				type: "error",
+				message: err.message
+			});
 		}
-
-		const data = await sendPdf(pdfFile);
-		alert(
-			`Uploaded successfully.
-			${data.chunks} chunks created`
-		);
-
-    }
-
+	}
 	return (
-		<>
-            <Header />
-            <div className="max-w-5xl mx-auto p-8 ">
-                
-                <div className="mb-8">
-                    <SearchBox question = {question} setQuestion = {setQuestion} handleAsk = {handleAsk}/>
-                </div>
-                <div className="mb-8">
-                    <UploadBox pdfFile = {pdfFile} setPdfFile = {setPdfFile} handlePdfUpload = {handlePdfUpload}/>
-                </div>
-                <div className="mb-8">
-                    <ResponseBox answer={answer} sources={sources} loading={loading}/>
-                </div>
-            </div>
-		</>
+		<div className="">
+			<main className="flex flex-col h-screen">
+				<Header />
+				<div className="flex flex-1 min-h-0">
+					<Sidebar 
+						sessions={sessions}
+						selectedSession={selectedSession}
+						setSelectedSession={setSelectedSession}
+					/>
+					<div className="flex flex-col flex-1 p-5">
+						<div className="flex-1 overflow-y-auto">
+							<ChatWindow messages={messages} />
+						</div>
+
+						<div className="border-t pt-4">
+							<SearchBox
+								question={question}
+								setQuestion={setQuestion}
+								handleAsk={handleAsk}
+								pdfFile={pdfFile}
+								setPdfFile={setPdfFile}
+								handlePdfUpload={handlePdfUpload}
+								uploadStatus={uploadStatus}
+								setUploadStatus={setUploadStatus}
+							/>
+						</div>
+					</div>
+				</div>
+			</main>
+		</div>
 	);
 }
